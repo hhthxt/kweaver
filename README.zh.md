@@ -10,8 +10,8 @@ DIP 平台包括 ADP、Decision Agent、DIP Studio、AI Store 等关键子系统
 
 ## 📚 快速链接
 
-- 🤝 [贡献指南](CONTRIBUTING.zh.md) - 项目贡献指南
-- 🚀 [发布规范](RELEASE.zh.md) - 版本管理与发布流程
+- 🤝 [贡献指南](rules/CONTRIBUTING.zh.md) - 项目贡献指南
+- 🚀 [发布规范](rules/RELEASE.zh.md) - 版本管理与发布流程
 - 📄 [许可证](LICENSE.txt) - Apache License 2.0
 - 🐛 [报告 Bug](https://github.com/kweaver-ai/kweaver/issues) - 报告问题或 Bug
 - 💡 [功能建议](https://github.com/kweaver-ai/kweaver/issues) - 提出新功能建议
@@ -40,13 +40,12 @@ DIP 平台包括 ADP、Decision Agent、DIP Studio、AI Store 等关键子系统
 | **AI Store** | AI 应用与组件市场 | [kweaver-ai/ai-store](https://github.com/kweaver-ai/ai-store) |
 | **Studio** | DIP Studio - 可视化开发与管理界面 | [kweaver-ai/studio](https://github.com/kweaver-ai/studio) |
 | **Decision Agent** | 决策智能体 | [kweaver-ai/decision-agent](https://github.com/kweaver-ai/decision-agent) |
-| **ADP** | 智能数据平台 - 核心开发框架，包含本体引擎、ContextLoader 和 VEGA 数据虚拟化引擎 | [kweaver-ai/adp](https://github.com/kweaver-ai/adp) |
-| **Operator Hub** | 算子平台，负责算子管理与编排 | [kweaver-ai/operator-hub](https://github.com/kweaver-ai/operator-hub) |
+| **ADP** | 智能数据平台 - 核心开发框架，包含本体引擎、算子平台、ContextLoader 和 VEGA 数据虚拟化引擎 | [kweaver-ai/adp](https://github.com/kweaver-ai/adp) |
 | **Sandbox** | 沙箱运行环境 | [kweaver-ai/sandbox](https://github.com/kweaver-ai/sandbox) |
 
 ## 贡献指南
 
-我们欢迎贡献！请查看我们的[贡献指南](CONTRIBUTING.zh.md)了解如何为项目做出贡献。
+我们欢迎贡献！请查看我们的[贡献指南](rules/CONTRIBUTING.zh.md)了解如何为项目做出贡献。
 
 快速开始：
 
@@ -62,7 +61,7 @@ DIP 平台包括 ADP、Decision Agent、DIP Studio、AI Store 等关键子系统
 
 ## 支持与联系
 
-- **贡献指南**: [贡献指南](CONTRIBUTING.zh.md)
+- **贡献指南**: [贡献指南](rules/CONTRIBUTING.zh.md)
 - **问题反馈**: [GitHub Issues](https://github.com/kweaver-ai/kweaver/issues)
 - **许可证**: [Apache License 2.0](LICENSE.txt)
 
