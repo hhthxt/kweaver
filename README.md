@@ -12,6 +12,8 @@ The DIP platform includes key subsystems such as ADP, Decision Agent, DIP Studio
 
 - 🤝 [Contributing](rules/CONTRIBUTING.md) - Guidelines for contributing to the project
 - 🚀 [Release Guidelines](rules/RELEASE.md) - Version management and release process
+- 🏗️ [Architecture](rules/ARCHITECTURE.md) - Architecture design specification
+- 🧾 [Changelog](rules/CHANGELOG.md) - All notable changes
 - 📄 [License](LICENSE.txt) - Apache License 2.0
 - 🐛 [Report Bug](https://github.com/kweaver-ai/kweaver/issues) - Report a bug or issue
 - 💡 [Request Feature](https://github.com/kweaver-ai/kweaver/issues) - Suggest a new feature
