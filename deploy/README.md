@@ -16,8 +16,15 @@ cd kweaver/deploy
 # 2. Edit the config file (optional; skip to use defaults)
 # vim conf/config.yaml
 
-# 3. Deploy all components (installs the latest version by default)
-bash ./deploy.sh full init
+# 3. Install KWeaver Core (includes ISF by default; automatically installs missing K8s and data services)
+bash ./deploy.sh kweaver-core install
+
+# 3'. Pre-download charts into deploy/.tmp/charts, then install from that directory explicitly
+# bash ./deploy.sh kweaver-core download
+# bash ./deploy.sh kweaver-core install --charts_dir=./.tmp/charts
+
+# 3'. Install KWeaver DIP (automatically installs missing K8s, data services, and app dependencies)
+# bash ./deploy.sh kweaver-dip install
 ```
 
 After deployment, open `https://<node-ip>/studio`. Username: `admin`, initial password: `eisoo.com`.
@@ -45,7 +52,8 @@ swapoff -a && sed -i '/ swap / s/^/#/' /etc/fstab
 # 3. Disable SELinux (optional; the script may handle this)
 setenforce 0
 
-# 4. Manually install container-selinux
+# 4. Manually install containerd.io
+dnf install containerd.io
 ```
 
 ### Network requirements
@@ -84,36 +92,99 @@ The deployment scripts need access to the following domains:
 ### Deployment commands
 
 ```bash
-# Full one-click deployment (recommended)
-./deploy.sh full init     # Infrastructure + KWeaver application services
+# Recommended install paths
+./deploy.sh kweaver-core install
+# Install KWeaver Core; ISF is installed by default, and missing K8s/data services are installed automatically
 
-# Layered deployment
-./deploy.sh infra init    # Infrastructure only: K8s + data services
-./deploy.sh kweaver init  # Application services only: ISF/Studio/Ontology, etc.
+./deploy.sh kweaver-core install --enable-isf=false
+# Install KWeaver Core without ISF; missing K8s/data services are still installed automatically
 
-# Deploy a single infrastructure component
-./deploy.sh k8s init         # Kubernetes cluster
-./deploy.sh mariadb init     # MariaDB
-./deploy.sh mongodb init     # MongoDB
-./deploy.sh redis init       # Redis
-./deploy.sh kafka init       # Kafka
-./deploy.sh opensearch init  # OpenSearch
+./deploy.sh kweaver-dip install
+# Install KWeaver DIP; if K8s, data services, ISF, or KWeaver Core are missing, they will be installed automatically
 
-# Deploy a single application service
-./deploy.sh isf init         # ISF service
-./deploy.sh studio init      # Studio service
+./deploy.sh kweaver-core download
+# Download/update KWeaver Core charts into deploy/.tmp/charts; includes ISF charts by default
 
-# Specify Helm repo and version
-./deploy.sh kweaver init --helm_repo=https://kweaver-ai.github.io/helm-repo/ --version=0.1.0
+./deploy.sh kweaver-core download --charts_dir=/path/to/charts
+# Download/update KWeaver Core charts into a specific local directory
 
-# Multiple version types are supported
-./deploy.sh kweaver init --version=0.1.0              # Stable release
-./deploy.sh kweaver init --version=0.0.0-feature-xxx  # Branch/dev build
-./deploy.sh kweaver init                              # Latest
+./deploy.sh kweaver-core download --enable-isf=false
+# Download only KWeaver Core charts and skip ISF charts
+
+./deploy.sh kweaver-core install --charts_dir=./.tmp/charts
+# Install KWeaver Core from pre-downloaded local charts
+
+./deploy.sh kweaver-dip download
+# Download/update DIP + Core + ISF charts into deploy/.tmp/charts
+
+./deploy.sh kweaver-dip download --charts_dir=/path/to/charts
+# Download/update DIP + Core + ISF charts into a specific local directory
+
+./deploy.sh kweaver-dip install --charts_dir=./.tmp/charts
+# Install KWeaver DIP from pre-downloaded local charts
+
+./deploy.sh isf download --force-refresh
+# Force re-download ISF charts into deploy/.tmp/charts
+
+./deploy.sh isf download --charts_dir=/path/to/charts
+# Download/update ISF charts into a specific local directory
+
+./deploy.sh isf install --charts_dir=./.tmp/charts
+# Install ISF from pre-downloaded local charts; missing K8s/data services are installed automatically
+
+./deploy.sh core install
+# Same as above; `core` is an alias of `kweaver-core`
+
+./deploy.sh dip install
+# Same as above; `dip` is an alias of `kweaver-dip`
+
+# KWeaver Core examples
+./deploy.sh kweaver-core install --config=/root/.kweaver-ai/config.yaml
+# Use a specific config file
+
+./deploy.sh kweaver-core install --helm_repo=https://acr.aishu.cn/chartrepo/public --version=0.4.0
+# Install a specific version from a specific Helm repo
+
+./deploy.sh kweaver-core download --helm_repo=https://acr.aishu.cn/chartrepo/public --version=0.4.0
+# Pre-download a specific chart version from a specific Helm repo
+
+# Optional commands
+./deploy.sh isf install
+./deploy.sh config generate
+./deploy.sh k8s install
+./deploy.sh storage install
+./deploy.sh mariadb install
+./deploy.sh redis install
+./deploy.sh kafka install
+./deploy.sh zookeeper install
+./deploy.sh opensearch install
+./deploy.sh ingress-nginx install
+
+# Status and uninstall
+./deploy.sh isf status
+./deploy.sh kweaver-core status
+./deploy.sh kweaver-dip status
+./deploy.sh kweaver uninstall
+./deploy.sh kweaver-core uninstall
+./deploy.sh isf uninstall
+./deploy.sh kweaver-dip uninstall
+./deploy.sh k8s reset
 
 # Help
-./deploy.sh --help
+./deploy.sh
 ```
+
+### Chart pre-download and cache
+
+- The shared chart cache directory defaults to `deploy/.tmp/charts`
+- If `download` cannot find `helm`, it installs `helm` first
+- `download` uses incremental refresh by default instead of re-downloading everything
+- If `--version` is set, the script only checks whether that exact chart version is already cached
+- If `--version` is not set, the script compares the repo latest chart version with the newest cached local version and only downloads when the repo is newer
+- `kweaver-core download` includes ISF charts by default; use `--enable-isf=false` to skip them
+- `kweaver-dip download` automatically downloads the full DIP + KWeaver Core + ISF dependency chart set
+- `download` is the only path that creates or updates the default shared cache in `deploy/.tmp/charts`
+- `install` does not auto-use `deploy/.tmp/charts`; pass `--charts_dir=<dir>` when you want to install from pre-downloaded local `.tgz` files
 
 ### Verify deployment
 
@@ -254,4 +325,3 @@ kubectl logs -n <namespace> <pod-name>
 ## 📄 License
 
 [Apache License 2.0](../LICENSE.txt)
-

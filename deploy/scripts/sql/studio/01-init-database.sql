@@ -266,4 +266,3 @@ create table if not exists t_multipart_upload_task
     key idx_status (f_status),
     key idx_expires_at (f_expires_at)
 );
-

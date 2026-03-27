@@ -16,8 +16,15 @@ cd kweaver/deploy
 # 2. 编辑配置文件（可选，使用默认配置可跳过）
 # vim conf/config.yaml
 
-# 3. 一键部署所有组件，默认安装最新版本
-bash ./deploy.sh full init
+# 3. 安装 KWeaver Core（默认包含 ISF；缺失的 K8s 和数据服务会自动安装）
+bash ./deploy.sh kweaver-core install
+
+# 3'. 先预下载 chart 到 deploy/.tmp/charts，再显式从该目录安装
+# bash ./deploy.sh kweaver-core download
+# bash ./deploy.sh kweaver-core install --charts_dir=./.tmp/charts
+
+# 3'. 安装 KWeaver DIP（会自动补齐 K8s、数据服务和应用依赖）
+bash ./deploy.sh kweaver-dip install
 ```
 
 部署完成后，访问 `https://<节点IP>/studio` 即可使用,账号admin，初始密码eisoo.com
@@ -45,7 +52,8 @@ swapoff -a && sed -i '/ swap / s/^/#/' /etc/fstab
 # 3. 关闭 SELinux（可选，脚本会自动处理）
 setenforce 0
 
-# 4. 手动安装  container-selinux
+# 4. 手动安装  containerd.io
+dnf install containerd.io
 ```
 
 ### 网络要求
@@ -84,36 +92,100 @@ setenforce 0
 ### 部署命令
 
 ```bash
-# 完整一键部署（推荐）
-./deploy.sh full init     # 基础设施 + KWeaver 应用服务
+# 推荐安装方式
+./deploy.sh kweaver-core install
+# 安装 KWeaver Core，默认会安装 ISF；缺失的 K8s 和数据服务会自动安装
 
-# 分层部署
-./deploy.sh infra init    # 仅基础设施：K8s + 数据服务
-./deploy.sh kweaver init  # 仅应用服务：ISF/Studio/Ontology 等
+./deploy.sh kweaver-core install --enable-isf=false
+# 安装 KWeaver Core，但不安装 ISF；缺失的 K8s 和数据服务仍会自动安装
 
-# 部署单个基础设施组件
-./deploy.sh k8s init      # Kubernetes 集群
-./deploy.sh mariadb init  # MariaDB
-./deploy.sh mongodb init  # MongoDB
-./deploy.sh redis init    # Redis
-./deploy.sh kafka init    # Kafka
-./deploy.sh opensearch init  # OpenSearch
+./deploy.sh kweaver-dip install
+# 安装 KWeaver DIP；如果 K8s、数据服务、ISF 或 KWeaver Core 缺失，会自动补齐依赖
 
-# 部署单个应用服务
-./deploy.sh isf init      # ISF 服务
-./deploy.sh studio init   # Studio 服务
+./deploy.sh kweaver-core download
+# 预下载/更新 KWeaver Core chart 到 deploy/.tmp/charts；默认会同时处理 ISF chart
 
-# 指定 Helm 仓库和版本
-./deploy.sh kweaver init --helm_repo=https://kweaver-ai.github.io/helm-repo/ --version=0.1.0
+./deploy.sh kweaver-core download --charts_dir=/path/to/charts
+# 预下载/更新 KWeaver Core chart 到指定本地目录
 
-# 支持多种版本类型
-./deploy.sh kweaver init --version=0.1.0                    # 稳定版
-./deploy.sh kweaver init --version=0.0.0-feature-xxx        # 分支/开发版
-./deploy.sh kweaver init                                     # 最新版
+./deploy.sh kweaver-core download --enable-isf=false
+# 仅下载 Core chart，不下载 ISF chart
+
+./deploy.sh kweaver-core install --charts_dir=./.tmp/charts
+# 从预下载的本地 chart 安装 KWeaver Core
+
+./deploy.sh kweaver-dip download
+# 预下载/更新 DIP + Core + ISF chart 到 deploy/.tmp/charts
+
+./deploy.sh kweaver-dip download --charts_dir=/path/to/charts
+# 预下载/更新 DIP + Core + ISF chart 到指定本地目录
+
+./deploy.sh kweaver-dip install --charts_dir=./.tmp/charts
+# 从预下载的本地 chart 安装 KWeaver DIP
+
+./deploy.sh isf download --force-refresh
+# 强制重新下载 ISF chart 到 deploy/.tmp/charts
+
+./deploy.sh isf download --charts_dir=/path/to/charts
+# 预下载/更新 ISF chart 到指定本地目录
+
+./deploy.sh isf install --charts_dir=./.tmp/charts
+# 从预下载的本地 chart 安装 ISF；缺失的 K8s 和数据服务会自动安装
+
+./deploy.sh core install
+# 同上，core 是 kweaver-core 的别名
+
+./deploy.sh dip install
+# 同上，dip 是 kweaver-dip 的别名
+
+# kweaver-core 核心用法
+./deploy.sh kweaver-core install --config=/root/.kweaver-ai/config.yaml
+# 指定配置文件
+
+./deploy.sh kweaver-core install --helm_repo=https://acr.aishu.cn/chartrepo/public --version=0.4.0
+# 从指定 Helm 仓库安装指定版本
+
+./deploy.sh kweaver-core download --helm_repo=https://acr.aishu.cn/chartrepo/public --version=0.4.0
+# 从指定 Helm 仓库预下载指定版本 chart
+
+
+# 其他可选命令
+./deploy.sh isf install
+./deploy.sh config generate
+./deploy.sh k8s install
+./deploy.sh storage install
+./deploy.sh mariadb install
+./deploy.sh redis install
+./deploy.sh kafka install
+./deploy.sh zookeeper install
+./deploy.sh opensearch install
+./deploy.sh ingress-nginx install
+
+# 状态与卸载
+./deploy.sh isf status
+./deploy.sh kweaver-core status
+./deploy.sh kweaver-dip status
+./deploy.sh kweaver uninstall
+./deploy.sh kweaver-core uninstall
+./deploy.sh isf uninstall
+./deploy.sh kweaver-dip uninstall
+./deploy.sh k8s reset
 
 # 查看帮助
-./deploy.sh --help
+./deploy.sh
 ```
+
+### Chart 预下载与缓存
+
+- 共享缓存目录默认是 `deploy/.tmp/charts`
+- `download` 如果检测不到 `helm`，会先自动安装 `helm`
+- `download` 默认增量刷新，不会每次全量重下
+- 如果指定 `--version`，脚本只检查该版本是否已存在；不存在才下载
+- 如果不指定 `--version`，脚本会比较 Helm repo 最新版本和本地缓存的最新版本，仅在 repo 更新时下载
+- `kweaver-core download` 默认会连同 ISF 一起下载；可用 `--enable-isf=false` 关闭
+- `kweaver-dip download` 会自动下载 DIP、KWeaver Core、ISF 的完整依赖 chart
+- 只有 `download` 会创建或更新默认共享缓存目录 `deploy/.tmp/charts`
+- `install` 不会自动读取 `deploy/.tmp/charts`；如果要使用预下载的本地 `.tgz`，请显式传入 `--charts_dir=<目录>`
 
 ### 验证部署
 
