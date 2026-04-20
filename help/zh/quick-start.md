@@ -31,7 +31,7 @@ kweaver auth login <平台地址> -k
 kweaver config show
 ```
 
-> 其它登录方式（无浏览器、CI 自动化、Playwright 等）和业务域切换见 [认证参考](installation/auth-reference.md)。
+> 其它登录方式（无浏览器、CI 自动化、HTTP 用户名密码登录等）和业务域切换见 [认证参考](installation/auth-reference.md)。
 
 ### 配置模型（按需）
 
