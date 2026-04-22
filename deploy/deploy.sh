@@ -5,6 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONF_DIR="${CONF_DIR:-${HOME}/.kweaver-ai}"
 CONFIG_YAML_PATH="${CONFIG_YAML_PATH:-${CONF_DIR}/config.yaml}"
 
+# Global flag: skip all interactive prompts and use defaults
+ASSUME_YES="${ASSUME_YES:-false}"
+
 # Global flag: bypass "skip when chart version unchanged" optimization so that
 # helm upgrade re-renders templates with the latest values.yaml. Use this after
 # editing config.yaml on a previously-installed cluster.
@@ -113,6 +116,7 @@ usage() {
     echo "  $0 all install                # Full initialization with all components"
     echo ""
     echo "Global Options:"
+    echo "  -y, --yes                     Skip all interactive prompts and use defaults"
     echo "  --force-upgrade               Always run helm upgrade even if installed chart version equals target."
     echo "                                Use this after editing config.yaml on a previously-installed cluster."
     echo "  --config=<path>               Specify config.yaml path (values file for helm installs)"
@@ -304,11 +308,13 @@ confirm_access_address_before_install() {
     echo "    Protocol : ${scheme}  (http or https)"
     echo "    URL      : ${url}"
     echo "============================================"
-    echo ""
-    echo "Press Enter to keep the default, or type a new value."
-    echo ""
 
-    if [[ -t 0 ]]; then
+    if [[ "${ASSUME_YES}" == "true" ]]; then
+        log_info "Using defaults (-y)."
+    elif [[ -t 0 ]]; then
+        echo ""
+        echo "Press Enter to keep the default, or type a new value."
+        echo ""
         local input_host input_port input_path input_scheme
         read -r -p "  Host     [${host}]: " input_host
         read -r -p "  Port     [${port}]: " input_port
@@ -340,6 +346,7 @@ main() {
     # Parse global flags before module/action
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            -y|--yes) ASSUME_YES="true"; shift ;;
             --force-upgrade) FORCE_UPGRADE="true"; shift ;;
             *) break ;;
         esac
@@ -395,6 +402,7 @@ main() {
                 --force-upgrade)        FORCE_UPGRADE="true"; shift ;;
                 --access_address=*)     KWEAVER_ACCESS_ADDRESS="${1#*=}"; shift ;;
                 --access_address)       KWEAVER_ACCESS_ADDRESS="$2"; shift 2 ;;
+                -y|--yes)               ASSUME_YES="true"; shift ;;
                 *) shift ;;
             esac
         done

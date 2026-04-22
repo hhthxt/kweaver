@@ -117,6 +117,10 @@ parse_core_args() {
                 CORE_SET_VALUES+=("businessDomain.enabled=false")
                 shift
                 ;;
+            -y|--yes)
+                ASSUME_YES="true"
+                shift
+                ;;
             --force-upgrade)
                 FORCE_UPGRADE="true"
                 shift
@@ -552,6 +556,12 @@ uninstall_core() {
             log_warn "⚠ ${release_name} not found or already uninstalled"
         fi
     done
+
+    # Clean up sandbox session pods created at runtime by sandbox-control-plane.
+    # These pods are scheduled via K8s API and are not owned by any Helm release,
+    # so `helm uninstall` cannot reclaim them.
+    log_warn "Deleting sandbox session pods (label: sandbox-type=execution)"
+    kubectl delete pod -n "${namespace}" -l sandbox-type=execution --ignore-not-found >/dev/null 2>&1 || true
 
     log_info "KWeaver Core services uninstallation completed."
 }
